@@ -70,25 +70,12 @@ pipeline {
     }
 
     post {
-        always {
-            script {
-                // Delete the image after the pipeline ends
-                def imageExists = sh(script: "docker images -q nginx", returnStdout: true).trim()
-                if (imageExists) {
-                    sh "docker rmi -f nginx"
-                }
-            }
-        }
+    always {
+        sh "docker system prune -af"
+    }
+    success {
+        sh "docker stop ${CONTAINER_NAME} && docker rm ${CONTAINER_NAME}"
+    }
+}
 
-        success {
-            script {
-                // Remove the container after a successful pipeline
-                def containerExists = sh(script: "docker ps -q -f name=${CONTAINER_NAME}", returnStdout: true).trim()
-                if (containerExists) {
-                    sh "docker stop ${CONTAINER_NAME}"
-                    sh "docker rm ${CONTAINER_NAME}"
-                }
-            }
-        }
-    }
 }
